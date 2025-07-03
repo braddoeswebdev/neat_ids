@@ -1,53 +1,49 @@
 require "test_helper"
 
-class PrefixedIdsTest < ActiveSupport::TestCase
+class NeatIdsTest < ActiveSupport::TestCase
   test "it has a version number" do
-    assert PrefixedIds::VERSION
+    assert NeatIds::VERSION
   end
 
   test "default alphabet" do
-    assert_equal 62, PrefixedIds.alphabet.length
+    assert_equal 36, NeatIds.alphabet.length
   end
 
   test "default minimum length" do
-    assert_equal 24, PrefixedIds.minimum_length
-  end
-
-  test "default salt" do
-    assert_equal "", PrefixedIds.salt
+    assert_equal 24, NeatIds.minimum_length
   end
 
   test "can get prefix ID from original ID" do
-    assert_equal users(:one).prefix_id, User.prefix_id(users(:one).id)
+    assert_equal users(:one).neat_id, User.neat_id(users(:one).id)
   end
 
   test "can get prefix IDs from multiple original IDs" do
     assert_equal(
-      [users(:one).prefix_id, users(:two).prefix_id, users(:three).prefix_id],
-      User.prefix_ids([users(:one).id, users(:two).id, users(:three).id])
+      [users(:one).neat_id, users(:two).neat_id, users(:three).neat_id],
+      User.neat_ids([users(:one).id, users(:two).id, users(:three).id])
     )
   end
 
   test "can get original ID from prefix ID" do
-    assert_equal users(:one).id, User.decode_prefix_id(users(:one).prefix_id)
+    assert_equal users(:one).id, User.decode_neat_id(users(:one).neat_id)
   end
 
   test "can get original IDs from multiple prefix IDs" do
     assert_equal(
       [users(:one).id, users(:two).id, users(:three).id],
-      User.decode_prefix_ids([users(:one).prefix_id, users(:two).prefix_id, users(:three).prefix_id])
+      User.decode_neat_ids([users(:one).neat_id, users(:two).neat_id, users(:three).neat_id])
     )
   end
 
   test "has a prefix ID" do
-    prefix_id = users(:one).prefix_id
-    assert_not_nil prefix_id
-    assert prefix_id.start_with?("user_")
+    neat_id = users(:one).neat_id
+    assert_not_nil neat_id
+    assert neat_id.start_with?("user_")
   end
 
   test "can lookup by prefix ID" do
     user = users(:one)
-    assert_equal user, User.find_by_prefix_id(user.prefix_id)
+    assert_equal user, User.find_by_neat_id(user.neat_id)
   end
 
   test "to param" do
@@ -56,59 +52,59 @@ class PrefixedIdsTest < ActiveSupport::TestCase
 
   test "overridden finders" do
     user = users(:one)
-    assert_equal user, User.find(user.prefix_id)
+    assert_equal user, User.find(user.neat_id)
   end
 
   test "overridden finders with multiple args" do
     user = users(:one)
     user2 = users(:two)
-    assert_equal [user, user2], User.find(user.prefix_id, user2.prefix_id)
+    assert_equal [user, user2], User.find(user.neat_id, user2.neat_id)
   end
 
   test "overridden finders with array args" do
     user = users(:one)
     user2 = users(:two)
-    assert_equal [user, user2], User.find([user.prefix_id, user2.prefix_id])
+    assert_equal [user, user2], User.find([user.neat_id, user2.neat_id])
   end
 
   test "overridden finders with single array args" do
     user = users(:one)
-    assert_equal [user], User.find([user.prefix_id])
+    assert_equal [user], User.find([user.neat_id])
   end
 
   test "minimum length" do
-    assert_equal 32 + 5, accounts(:one).prefix_id.length
+    assert_equal 24 + 5, accounts(:one).neat_id.length
   end
 
   test "doesn't override find when disabled" do
     assert_raises ActiveRecord::RecordNotFound do
-      Account.find accounts(:one).prefix_id
+      Account.find accounts(:one).neat_id
     end
   end
 
   test "doesn't override to_param when disabled" do
     account = accounts(:one)
-    assert_not_equal account.prefix_id, account.to_param
+    assert_not_equal account.neat_id, account.to_param
   end
 
   test "find looks up the correct model" do
     user = users(:one)
-    assert_equal user, PrefixedIds.find(user.prefix_id)
+    assert_equal user, NeatIds.find(user.neat_id)
   end
 
   test "find with invalid prefix" do
-    assert_raises PrefixedIds::Error do
-      PrefixedIds.find("unknown_1")
+    assert_raises NeatIds::Error do
+      NeatIds.find("unknown_1")
     end
   end
 
   test "split_id" do
-    assert_equal ["user", "1234"], PrefixedIds.split_id("user_1234")
+    assert_equal ["user", "1234"], NeatIds.split_id("user_1234")
   end
 
   test "can use a custom alphabet" do
-    default_encoder = PrefixedIds::PrefixId.new(User, "user", alphabet: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")
-    custom_encoder = PrefixedIds::PrefixId.new(User, "user", alphabet: "5N6y2rljDQak4xgzn8ZR1oKYLmJpEbVq3OBv9WwXPMe7")
+    default_encoder = NeatIds::NeatId.new(User, "user", alphabet: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")
+    custom_encoder = NeatIds::NeatId.new(User, "user", alphabet: "5N6y2rljDQak4xgzn8ZR1oKYLmJpEbVq3OBv9WwXPMe7")
 
     default = default_encoder.encode(1)
     custom = custom_encoder.encode(1)
@@ -118,33 +114,22 @@ class PrefixedIdsTest < ActiveSupport::TestCase
   end
 
   test "can change the default delimiter" do
-    slash = PrefixedIds::PrefixId.new(User, "user", delimiter: "/")
+    slash = NeatIds::NeatId.new(User, "user", delimiter: "/")
 
     assert slash.encode(1).start_with?("user/")
   end
 
-  test "can use a custom salt" do
-    default_encoder = PrefixedIds::PrefixId.new(User, "user")
-    custom_encoder = PrefixedIds::PrefixId.new(User, "user", salt: "truffle")
-
-    default = default_encoder.encode(1)
-    custom = custom_encoder.encode(1)
-
-    assert_not_equal default, custom
-    assert_equal default_encoder.decode(default), custom_encoder.decode(custom)
-  end
-
   test "checks for a valid id upon decoding" do
-    prefix = PrefixedIds::PrefixId.new(User, "user")
-    hashid = Hashids.new(User.table_name, PrefixedIds.minimum_length, PrefixedIds.alphabet)
+    prefix = NeatIds::NeatId.new(User, "user")
+    sqids = Sqids.new(minimum_length: NeatIds.minimum_length, alphabet: NeatIds.alphabet)
 
-    first = prefix.encode(1)
-    second = hashid.encode(1)
+    first = prefix.encode([1])
+    second = sqids.encode([1])
 
-    assert_not_equal first.delete_prefix("user" + PrefixedIds.delimiter), second
+    assert_not_equal first.delete_prefix("user" + NeatIds.delimiter), second
     assert_equal prefix.decode(second, fallback: true), second
 
-    decoded = hashid.decode(second)
+    decoded = sqids.decode(second)
     assert_equal decoded.size, 1
     assert_equal decoded.first, 1
   end
@@ -167,28 +152,24 @@ class PrefixedIdsTest < ActiveSupport::TestCase
     assert_equal post, user.posts.find(post.to_param)
   end
 
-  test "can override salt on model" do
-    assert_equal "accountsabcd", Account._prefix_id.hashids.salt
-  end
-
   test "decode with fallback false returns nil for regular ID" do
-    assert_nil Team._prefix_id.decode(1)
+    assert_nil Team._neat_id.decode(1)
   end
 
   test "disabled fallback allows find by prefix id" do
     team = Team.find_by(id: ActiveRecord::FixtureSet.identify(:one))
-    assert_equal team, Team.find(team.prefix_id)
+    assert_equal team, Team.find(team.neat_id)
   end
 
-  test "disabled fallback raises an error if not prefix_id" do
-    assert_raises PrefixedIds::Error do
+  test "disabled fallback raises an error if not neat_id" do
+    assert_raises NeatIds::Error do
       Team.find(ActiveRecord::FixtureSet.identify(:one))
     end
   end
 
   test "find by prefixed ID on association" do
     account = accounts(:one)
-    assert_equal account, account.user.accounts.find(account.prefix_id)
+    assert_equal account, account.user.accounts.find(account.neat_id)
   end
 
   test "calling find on an associated model without prefix id succeeds" do
@@ -203,23 +184,23 @@ class PrefixedIdsTest < ActiveSupport::TestCase
     assert_nil Post.new.to_param
   end
 
-  if PrefixedIds::Test.rails71_and_up?
+  if NeatIds::Test.rails71_and_up?
     test "compound primary - can get prefix ID from original ID" do
       assert compound_primary_items(:one).id.is_a?(Array)
-      assert_equal compound_primary_items(:one).prefix_id, CompoundPrimaryItem.prefix_id(compound_primary_items(:one).id)
+      assert_equal compound_primary_items(:one).neat_id, CompoundPrimaryItem.neat_id(compound_primary_items(:one).id)
     end
 
     test "compound primary - checks for a valid id upon decoding" do
-      prefix = PrefixedIds::PrefixId.new(CompoundPrimaryItem, "compound")
-      hashid = Hashids.new(CompoundPrimaryItem.table_name, PrefixedIds.minimum_length, PrefixedIds.alphabet)
+      prefix = NeatIds::NeatId.new(CompoundPrimaryItem, "compound")
+      sqids = Sqids.new(minimum_length: NeatIds.minimum_length, alphabet: NeatIds.alphabet)
 
       first = prefix.encode([1, 1])
-      second = hashid.encode([1, 1])
+      second = sqids.encode([1, 1])
 
-      assert_not_equal first.delete_prefix("compound" + PrefixedIds.delimiter), second
+      assert_not_equal first.delete_prefix("compound" + NeatIds.delimiter), second
       assert_equal prefix.decode(second, fallback: true), second
 
-      decoded = hashid.decode(second)
+      decoded = sqids.decode(second)
       assert_equal decoded.size, 2
       assert_equal decoded, [1, 1]
 
@@ -235,20 +216,38 @@ class PrefixedIdsTest < ActiveSupport::TestCase
       end
     end
 
-    PrefixedIds.register_prefix("test_model", model: model)
-    assert_equal model, PrefixedIds.models["test_model"]
+    NeatIds.register_prefix("test_model", model: model)
+    assert_equal model, NeatIds.models["test_model"]
   end
 
-  test "has_prefix_id raises when prefix was already used" do
-    assert PrefixedIds.models.key?("user")
-    assert_raises PrefixedIds::Error do
+  test "has_neat_id raises when prefix was already used" do
+    assert NeatIds.models.key?("user")
+    assert_raises NeatIds::Error do
       Class.new(ApplicationRecord) do
         def self.name
           "TestModel"
         end
 
-        has_prefix_id :user
+        has_neat_id :user
       end
     end
+  end
+
+  test "encode and decode UUIDs as neat_ids" do
+    uuid = "123e4567-e89b-12d3-a456-426614174000"
+    encoder = NeatIds::NeatId.new(User, "user")
+    neat_id = encoder.encode(uuid)
+    assert neat_id.start_with?("user_")
+    decoded = encoder.decode(neat_id)
+    assert_equal uuid, decoded
+  end
+
+  test "encode and decode integer as neat_id" do
+    num = 42
+    encoder = NeatIds::NeatId.new(User, "user")
+    neat_id = encoder.encode(num)
+    assert neat_id.start_with?("user_")
+    decoded = encoder.decode(neat_id)
+    assert_equal num, decoded
   end
 end

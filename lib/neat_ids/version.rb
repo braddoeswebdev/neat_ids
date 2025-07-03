@@ -1,3 +1,3 @@
-module PrefixedIds
+module NeatIds
   VERSION = "1.8.1"
 end

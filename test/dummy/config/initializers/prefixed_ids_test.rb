@@ -1,6 +1,6 @@
 # Largely copied from https://github.com/heartcombo/devise/blob/main/test/rails_app/config/boot.rb
 
-module PrefixedIds
+module NeatIds
   module Test
     # Detection for minor differences between Rails versions in tests.
 

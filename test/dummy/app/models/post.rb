@@ -1,4 +1,4 @@
 class Post < ApplicationRecord
-  has_prefix_id :post, override_exists: false
+  has_neat_id :post, override_exists: false
   belongs_to :user
 end
