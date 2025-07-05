@@ -30,7 +30,7 @@ jobs:
 
       - name: Update version
         run: |
-          sed -i 's/".*"/"${{ inputs.version }}"/' lib/prefixed_ids/version.rb
+          sed -i 's/".*"/"${{ inputs.version }}"/' lib/neat_ids/version.rb
           bundle config set frozen false
           bundle
           bundle exec appraisal

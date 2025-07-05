@@ -13,35 +13,35 @@ class NeatIdsTest < ActiveSupport::TestCase
     assert_equal 24, NeatIds.minimum_length
   end
 
-  test "can get prefix ID from original ID" do
+  test "can get Neat ID from original ID" do
     assert_equal users(:one).neat_id, User.neat_id(users(:one).id)
   end
 
-  test "can get prefix IDs from multiple original IDs" do
+  test "can get neat IDs from multiple original IDs" do
     assert_equal(
       [users(:one).neat_id, users(:two).neat_id, users(:three).neat_id],
       User.neat_ids([users(:one).id, users(:two).id, users(:three).id])
     )
   end
 
-  test "can get original ID from prefix ID" do
+  test "can get original ID from Neat ID" do
     assert_equal users(:one).id, User.decode_neat_id(users(:one).neat_id)
   end
 
-  test "can get original IDs from multiple prefix IDs" do
+  test "can get original IDs from multiple Neat IDs" do
     assert_equal(
       [users(:one).id, users(:two).id, users(:three).id],
       User.decode_neat_ids([users(:one).neat_id, users(:two).neat_id, users(:three).neat_id])
     )
   end
 
-  test "has a prefix ID" do
+  test "has a Neat ID" do
     neat_id = users(:one).neat_id
     assert_not_nil neat_id
     assert neat_id.start_with?("user_")
   end
 
-  test "can lookup by prefix ID" do
+  test "can lookup by Neat ID" do
     user = users(:one)
     assert_equal user, User.find_by_neat_id(user.neat_id)
   end
@@ -156,7 +156,7 @@ class NeatIdsTest < ActiveSupport::TestCase
     assert_nil Team._neat_id.decode(1)
   end
 
-  test "disabled fallback allows find by prefix id" do
+  test "disabled fallback allows find by neat id" do
     team = Team.find_by(id: ActiveRecord::FixtureSet.identify(:one))
     assert_equal team, Team.find(team.neat_id)
   end
@@ -172,7 +172,7 @@ class NeatIdsTest < ActiveSupport::TestCase
     assert_equal account, account.user.accounts.find(account.neat_id)
   end
 
-  test "calling find on an associated model without prefix id succeeds" do
+  test "calling find on an associated model without neat id succeeds" do
     nonprefixed_item = nonprefixed_items(:one)
     user = users(:one)
 
@@ -185,7 +185,7 @@ class NeatIdsTest < ActiveSupport::TestCase
   end
 
   if NeatIds::Test.rails71_and_up?
-    test "compound primary - can get prefix ID from original ID" do
+    test "compound primary - can get neat ID from original ID" do
       assert compound_primary_items(:one).id.is_a?(Array)
       assert_equal compound_primary_items(:one).neat_id, CompoundPrimaryItem.neat_id(compound_primary_items(:one).id)
     end

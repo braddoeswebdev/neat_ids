@@ -23,7 +23,7 @@ Or install it yourself as:
 $ gem install neat_ids
 ```
 
-Add `has_neat_id :my_prefix` to your models (before you define any associations!!) to autogenerate prefixed IDs.
+Add `has_neat_id :my_prefix` to your models (before you define any associations!!) to autogenerate Neat IDs.
 
 ```ruby
 class User < ApplicationRecord
@@ -33,7 +33,7 @@ end
 
 ### Neat ID Param
 
-By default, Neat IDs overrides `to_param` in the model to use prefix IDs.
+By default, Neat IDs overrides `to_param` in the model to use Neat IDs.
 
 To get the Neat ID for a record:
 
