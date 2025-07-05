@@ -28,8 +28,8 @@ module NeatIds
   end
 
   def self.register_prefix(prefix, model:)
-    if (existing_model = NeatIds.models[prefix]) && existing_model != model
-      raise Error, "Prefix #{prefix} already defined for model #{model}"
+    if (existing_model = NeatIds.models[prefix]) && existing_model.name != model.name
+      raise Error, "Prefix #{prefix} already defined for model #{existing_model.name}"
     end
 
     NeatIds.models[prefix] = model
